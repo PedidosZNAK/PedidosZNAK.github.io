@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Pedidos Tienda</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+            max-width: 900px;
+            margin: auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        input, select {
+            padding: 8px;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+        }
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+            text-align: center;
+        }
+        th {
+            background-color: #333;
+            color: white;
+        }
+        input[type="number"] {
+            width: 60px;
+            padding: 5px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Pedidos Tienda</h1>
+
+<div class="controls">
+    <input type="text" id="storeName" placeholder="Nombre de la tienda">
+    <input type="text" id="searchBox" placeholder="Buscar producto">
+    <select id="providerFilter">
+        <option value="">Todos los proveedores</option>
+    </select>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Proveedor</th>
+            <th>Precio Unitario</th>
+            <th>Cantidad</th>
+        </tr>
+    </thead>
+    <tbody id="product-table">
+        <!-- Productos desde JS -->
+    </tbody>
+</table>
+
+<div style="text-align:center;">
+    <button onclick="generarPDF()">Generar PDF</button>
+</div>
+
+<script>
+    // Catálogo de ejemplo
+    const productos = [
+        { nombre: "Refresco Cola 2L", proveedor: "Bebidas MX", precio: 25 },
+        { nombre: "Agua Mineral 1.5L", proveedor: "Bebidas MX", precio: 18 },
+        { nombre: "Papas Fritas 150g", proveedor: "Snacks Co", precio: 15 },
+        { nombre: "Galletas Chocolate", proveedor: "Snacks Co", precio: 20 },
+        { nombre: "Pan Blanco 680g", proveedor: "Panadería del Sol", precio: 28 },
+        { nombre: "Leche Entera 1L", proveedor: "Lácteos del Norte", precio: 22 },
+        { nombre: "Jabón en barra", proveedor: "Limpieza Total", precio: 10 }
+    ];
+
+    const tabla = document.getElementById("product-table");
+    const searchBox = document.getElementById("searchBox");
+    const providerFilter = document.getElementById("providerFilter");
+
+    // Cargar proveedores en filtro
+    const proveedoresUnicos = [...new Set(productos.map(p => p.proveedor))];
+    proveedoresUnicos.forEach(prov => {
+        providerFilter.innerHTML += <option value="${prov}">${prov}</option>;
+    });
+
+    function mostrarProductos() {
+        const searchTerm = searchBox.value.toLowerCase();
+        const filtroProveedor = providerFilter.value;
+        tabla.innerHTML = "";
+
+        productos.forEach((p, i) => {
+            if ((p.nombre.toLowerCase().includes(searchTerm) || searchTerm === "") &&
+                (filtroProveedor === "" || p.proveedor === filtroProveedor)) {
+                tabla.innerHTML += `
+                    <tr>
+                        <td>${p.nombre}</td>
+                        <td>${p.proveedor}</td>
+                        <td>$${p.precio}</td>
+                        <td><input type="number" id="cant-${i}" min="0" value="0"></td>
+                    </tr>
+                `;
+            }
+        });
+    }
+
+    searchBox.addEventListener("input", mostrarProductos);
+    providerFilter.addEventListener("change", mostrarProductos);
+    mostrarProductos();
+
+    function generarPDF() {
+        const tienda = document.getElementById("storeName").value.trim();
+        if (!tienda) {
+            alert("Por favor, ingresa el nombre de la tienda.");
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Logo (opcional: reemplazar URL por tu logo real en base64 o imagen online)
+        const logoUrl = "https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg";
+        doc.addImage(logoUrl, "PNG", 150, 10, 40, 20);
+
+        doc.setFontSize(18);
+        doc.text("Pedido de Tienda", 14, 20);
+        doc.setFontSize(12);
+        doc.text(Tienda: ${tienda}, 14, 28);
+        doc.text(Fecha: ${new Date().toLocaleDateString()}, 14, 34);
+
+        let y = 50;
+        doc.text("Producto", 14, y);
+        doc.text("Cantidad", 120, y);
+        doc.text("Precio", 160, y);
+        y += 10;
+
+        let total = 0;
+
+        productos.forEach((p, i) => {
+            const input = document.getElementById(cant-${i});
+            if (input && parseInt(input.value) > 0) {
+                const cantidad = parseInt(input.value);
+                doc.text(p.nombre, 14, y);
+                doc.text(String(cantidad), 120, y);
+                doc.text($${p.precio * cantidad}, 160, y);
+                total += p.precio * cantidad;
+                y += 10;
+            }
+        });
+
+        y += 10;
+        doc.text(TOTAL: $${total}, 14, y);
+
+        doc.save(pedido-${tienda}-${new Date().toISOString().slice(0,10)}.pdf);
+    }
+</script>
+
+</body>
+</html>
