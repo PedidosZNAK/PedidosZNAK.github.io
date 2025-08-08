@@ -111,7 +111,8 @@
       try {
         const res = await fetch(catalogoUrl);
         if (!res.ok) throw new Error("No se pudo cargar el catálogo");
-        productos = await res.json();
+        const json = await res.json();
+        productos = json.data; // <-- Corregido para leer la propiedad data
         cargarProveedores();
         mostrarProductos();
       } catch (error) {
