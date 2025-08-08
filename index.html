@@ -64,7 +64,7 @@
 <body>
   <div style="text-align:center; margin-bottom:10px;">
     <img
-      src="https://TU-URL-DEL-LOGO.png"
+      src="https://znakminimarket.com/wp-content/uploads/2023/06/logo-znak-02.png"
       alt="Logo"
       style="max-height: 80px"
     />
@@ -97,17 +97,15 @@
   </div>
 
   <script>
-    const logoUrl = "https://znakminimarket.com/wp-content/uploads/2023/06/logo-znak-02.png"; // Cambia esta URL por tu logo
+    const logoUrl = "https://znakminimarket.com/wp-content/uploads/2023/06/logo-znak-02.png";
     let productos = [];
 
     const tabla = document.getElementById("product-table");
     const searchBox = document.getElementById("searchBox");
     const providerFilter = document.getElementById("providerFilter");
 
-    // Cambia esta URL por la URL pública de tu catálogo JSON
     const catalogoUrl = "https://raw.githubusercontent.com/PedidosZNAK/CatalogoZNAK/main/CATALOGO%20ZNAK%20JSON.json";
 
-    // Cargar catálogo desde archivo JSON público
     async function cargarCatalogo() {
       try {
         const res = await fetch(catalogoUrl);
@@ -118,6 +116,7 @@
         alert(
           "Error al cargar el catálogo. Por favor, verifica la URL del JSON."
         );
+        console.error(error);
       }
     }
 
@@ -166,41 +165,49 @@
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
 
-      doc.addImage(logoUrl, "PNG", 150, 10, 40, 20);
+      // Añadir logo al PDF
+      const img = new Image();
+      img.src = logoUrl;
+      img.onload = () => {
+        doc.addImage(img, "PNG", 150, 10, 40, 20);
 
-      doc.setFontSize(18);
-      doc.text("Pedido de Tienda", 14, 20);
-      doc.setFontSize(12);
-      doc.text(Tienda: ${tienda}, 14, 28);
-      doc.text(Fecha: ${new Date().toLocaleDateString()}, 14, 34);
+        doc.setFontSize(18);
+        doc.text("Pedido de Tienda", 14, 20);
+        doc.setFontSize(12);
+        doc.text(Tienda: ${tienda}, 14, 28);
+        doc.text(Fecha: ${new Date().toLocaleDateString()}, 14, 34);
 
-      let y = 50;
-      doc.text("Producto", 14, y);
-      doc.text("Cantidad", 120, y);
-      doc.text("Precio", 160, y);
-      y += 10;
+        let y = 50;
+        doc.text("Producto", 14, y);
+        doc.text("Cantidad", 120, y);
+        doc.text("Precio", 160, y);
+        y += 10;
 
-      let total = 0;
+        let total = 0;
 
-      productos.forEach((p, i) => {
-        const input = document.getElementById(cant-${i});
-        if (input && parseInt(input.value) > 0) {
-          const cantidad = parseInt(input.value);
-          doc.text(p.nombre, 14, y);
-          doc.text(String(cantidad), 120, y);
-          doc.text($${p.precio * cantidad}, 160, y);
-          total += p.precio * cantidad;
-          y += 10;
-        }
-      });
+        productos.forEach((p, i) => {
+          const input = document.getElementById(cant-${i});
+          if (input && parseInt(input.value) > 0) {
+            const cantidad = parseInt(input.value);
+            doc.text(p.nombre, 14, y);
+            doc.text(String(cantidad), 120, y);
+            doc.text($${p.precio * cantidad}, 160, y);
+            total += p.precio * cantidad;
+            y += 10;
+          }
+        });
 
-      y += 10;
-      doc.text(TOTAL: $${total}, 14, y);
+        y += 10;
+        doc.text(TOTAL: $${total}, 14, y);
 
-      doc.save(pedido-${tienda}-${new Date().toISOString().slice(0, 10)}.pdf);
+        doc.save(pedido-${tienda}-${new Date().toISOString().slice(0, 10)}.pdf);
+      };
+
+      img.onerror = () => {
+        alert("Error al cargar el logo para el PDF.");
+      };
     }
 
-    // Iniciar carga de catálogo al abrir página
     cargarCatalogo();
   </script>
 </body>
